@@ -1,7 +1,9 @@
 var express = require('express')
 var bodyParser = require('body-parser')
 var app = express();
-
+var multer = require('multer');
+var fs = require('fs');
+var path = require('path');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -23,27 +25,24 @@ app.get('/', function (req, res) {
         code: 20000
     })
 })
-app.get('/getData1',function(req,res){
-    console.log(1111)
-    setTimeout(()=>{
-        res.send({
-            code:200,
-            data:{
-                num:1
-            }
-        })
-    },2000)
+
+//文件上传
+var upload = multer({ dest: path.join(__dirname, './upload/') });
+app.post('/upload',upload.single('file'),function(req,res,next){
+    console.log(req.file)
+    var temp_path = req.file.path;
+    var ext = '.' + req.file.originalname.split('.')[1];
+    var target_path = req.file.path + ext;
+    var _filename = req.file.filename + ext;
+    var filePath = '/upload/' + _filename;
+    console.log("Uploading: " + _filename);
+    fs.rename(temp_path, target_path, function(err,data) {
+      res.send({
+          code:200
+      })
+    });
 })
-app.get('/getData2',function(req,res){
-    setTimeout(()=>{
-        res.send({
-            code:200,
-            data:{
-                num:2
-            }
-        })
-    },2000)
-})
+//登录
 app.post('/log', function (req, res, next) {
 
     var data = {
@@ -82,7 +81,7 @@ app.post('/log', function (req, res, next) {
                     id: "1-2",
                     value: "b表格",
                     url:'/table/btable'
-                  }
+                  },
                 ]
               },
               {
@@ -113,6 +112,13 @@ app.post('/log', function (req, res, next) {
                 icon:'el-icon-document',
                 url:'/excel/index'
               },
+              {
+                  name:'upload',
+                  id:'4',
+                  value:'UPLOAD',
+                  icon:'el-icon-upload',
+                  url:'/upload/index'
+              }
         ]
     }
     setTimeout(() => {
